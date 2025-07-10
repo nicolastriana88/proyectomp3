@@ -1,8 +1,9 @@
 #Librerias
 import pygame 
 from tkinter import *
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 import time #Futuro uso para nuevas funcionalidades
+import os
 
 #Iniciar pygame y pygamemixer
 pygame.init()
@@ -23,6 +24,18 @@ is_playing = False
 song_length = 0 
 
 #funciones
+
+
+def add_song(): #esta funcion puede mejorarse
+    files = filedialog.askopenfilenames(
+        title = "Select new song",
+        initialdir=os.path.expanduser("~"),
+        filetypes=[("All", "*.*")]
+    )
+
+    if not files:
+        messagebox.showinfo("Info", "you did not select any song")
+        return
 
 def get_song_length(file_path):
     sound = pygame.mixer.Sound(file_path)
@@ -67,14 +80,15 @@ def update_progress():
         root.after(100, update_progress)
 
 # Widgets
-ttk.Label(frm, text="Songs name").grid(column=1, row=0) #Progreso
-ttk.Label(frm, text="Here should be the song photo").grid(column=1, row=1) #Progreso
+ttk.Label(frm, text="Songs name").grid(column=1, row=1) #Progreso deberia tomar el nombre de la cancion como variable
+# se depreco songs image
 
 # Botones con Comandos
 ttk.Button(frm, text="play", command=play_and_pause).grid(column=1, row=2)
 ttk.Button(frm, text="next").grid(column=2, row=2)
 ttk.Button(frm, text="back").grid(column=0, row=2)
 ttk.Button(frm, text="stop", command=stop_song).grid(column=1, row=3)
+ttk.Button(frm, text="add song", command=add_song).grid(column=0, row=1)
 
 # Boton de Volumen
 ttk.Label(frm,text="Volume").grid(column=4,row=0)
