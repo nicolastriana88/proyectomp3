@@ -22,8 +22,7 @@ volume_var = DoubleVar(value=70)
 progress_var = DoubleVar(value=0)
 is_playing = False
 song_length = 0 
-song_name_var = StringVar(value="No song loaded") #Variable nombre de cancion
-
+song_name_var = StringVar(value="No song loaded") 
 
 #funciones
 
