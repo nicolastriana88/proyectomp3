@@ -84,8 +84,7 @@ def update_progress():
 
 
 # Widgets
-ttk.Label(frm, textvariable=song_name_var).grid(column=1, row=1) #Progreso deberia tomar el nombre de la cancion como variable
-# se depreco songs image
+ttk.Label(frm, textvariable=song_name_var).grid(column=1, row=1) 
 
 # Botones con Comandos
 ttk.Button(frm, text="play", command=play_and_pause).grid(column=1, row=2)
