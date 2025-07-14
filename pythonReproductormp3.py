@@ -22,6 +22,7 @@ volume_var = DoubleVar(value=70)
 progress_var = DoubleVar(value=0)
 is_playing = False
 song_length = 0 
+song_name_var = StringVar(value="No song loaded") 
 
 #funciones
 
@@ -47,6 +48,7 @@ def load_song():
         pygame.mixer.music.load(current_song)
         song_length = get_song_length(current_song)
         is_playing = True
+        song_name_var.set(os.path.basename(current_song))
 
 def play_and_pause():
     global is_playing,song_length
@@ -79,9 +81,9 @@ def update_progress():
             progress_var.set(progress)
         root.after(100, update_progress)
 
+
 # Widgets
-ttk.Label(frm, text="Songs name").grid(column=1, row=1) #Progreso deberia tomar el nombre de la cancion como variable
-# se depreco songs image
+ttk.Label(frm, textvariable=song_name_var).grid(column=1, row=1) 
 
 # Botones con Comandos
 ttk.Button(frm, text="play", command=play_and_pause).grid(column=1, row=2)
