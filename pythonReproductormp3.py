@@ -17,38 +17,66 @@ frm = ttk.Frame(root, padding=10)
 frm.grid() #Podria ser reemplazdo por PACk
 
 # Variables Globales
-current_song = "anysong.mp3"  #Variable constante por definir, se añadira funcion buscar en el so la cancion
+current_song = None
 volume_var = DoubleVar(value=70)
 progress_var = DoubleVar(value=0)
 is_playing = False
 song_length = 0 
 song_name_var = StringVar(value="No song loaded") 
+folder_path = None
+playlist = []
+current_song_index = 0
 
 #funciones
 
 
-def add_song(): #esta funcion puede mejorarse
+def add_song(): 
     files = filedialog.askopenfilenames(
         title = "Select new song",
         initialdir=os.path.expanduser("~"),
-        filetypes=[("All", "*.*")]
+        filetypes=[("MP3 Files", "*.mp3"), ("All Files", "*.*")]
     )
 
-    if not files:
-        messagebox.showinfo("Info", "you did not select any song")
-        return
+    if files:
+        global playlist
+        playlist.extend(files)
+        if not current_song: 
+            load_song(0)
+
+def add_folder():
+    global folder_path, playlist
+    folder_path = filedialog.askdirectory(
+        title="Select folder with songs",
+        initialdir=os.path.expanduser("~")
+    )
+
+    if folder_path:
+        playlist = [
+            os.path.join(folder_path, file)
+            for file in os.listdir(folder_path)
+            if file.lower().endswith(".mp3")
+        ]
+        if playlist:
+            load_song(0)
+        else:
+            messagebox.showinfo("Info", "No MP3 files found in the selected folder")
 
 def get_song_length(file_path):
-    sound = pygame.mixer.Sound(file_path)
-    return sound.get_length() 
+    try:
+        sound = pygame.mixer.Sound(file_path)
+        return sound.get_length()
+    except:
+        return 0  
 
-def load_song():
-    global is_playing, song_length
-    if not is_playing:
+def load_song(index):
+    global current_song,is_playing, song_length, current_song_index
+    if 0 <= index < len(playlist):
+        current_song_index = index
+        current_song = playlist[current_song_index]
         pygame.mixer.music.load(current_song)
         song_length = get_song_length(current_song)
-        is_playing = True
         song_name_var.set(os.path.basename(current_song))
+        is_playing = False  # Se marca como no playing para permitir play desde 0
 
 def play_and_pause():
     global is_playing,song_length
@@ -69,6 +97,21 @@ def stop_song():
     pygame.mixer.music.pause()
     is_playing = False
 
+
+def next_song():
+    if playlist:
+        new_index = (current_song_index + 1) % len(playlist)
+        load_song(new_index)
+        if is_playing:  # Si estaba reproduciendo, continúa con la siguiente
+            pygame.mixer.music.play()
+
+def prev_song():
+    if playlist:
+        new_index = (current_song_index - 1) % len(playlist)
+        load_song(new_index)
+        if is_playing:
+            pygame.mixer.music.play()
+
 def set_volume(val):
     volume = float(val)/100.0 
     pygame.mixer.music.set_volume(volume)
@@ -80,17 +123,20 @@ def update_progress():
             progress = (current_pos / song_length) * 100
             progress_var.set(progress)
         root.after(100, update_progress)
+    else: 
+        progress_var.set(0)
 
 
 # Widgets
 ttk.Label(frm, textvariable=song_name_var).grid(column=1, row=1) 
 
 # Botones con Comandos
-ttk.Button(frm, text="play", command=play_and_pause).grid(column=1, row=2)
-ttk.Button(frm, text="next").grid(column=2, row=2)
-ttk.Button(frm, text="back").grid(column=0, row=2)
-ttk.Button(frm, text="stop", command=stop_song).grid(column=1, row=3)
-ttk.Button(frm, text="add song", command=add_song).grid(column=0, row=1)
+ttk.Button(frm, text="Play/Pause", command=play_and_pause).grid(column=1, row=2)
+ttk.Button(frm, text="Next", command=next_song).grid(column=2, row=2)
+ttk.Button(frm, text="Back", command=prev_song).grid(column=0, row=2)
+ttk.Button(frm, text="Stop", command=stop_song).grid(column=1, row=3)
+ttk.Button(frm, text="Add song", command=add_song).grid(column=0, row=1)
+ttk.Button(frm, text="Add Folder", command=add_folder).grid(column=2, row=1)
 
 # Boton de Volumen
 ttk.Label(frm,text="Volume").grid(column=4,row=0)
