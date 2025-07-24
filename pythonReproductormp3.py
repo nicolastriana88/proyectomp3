@@ -26,8 +26,10 @@ song_name_var = StringVar(value="No song loaded")
 folder_path = None
 playlist = []
 current_song_index = 0
+progress_updating = False
 
-#funciones
+
+#Funciones
 
 
 def add_song(): 
@@ -76,33 +78,40 @@ def load_song(index):
         pygame.mixer.music.load(current_song)
         song_length = get_song_length(current_song)
         song_name_var.set(os.path.basename(current_song))
-        is_playing = False  # Se marca como no playing para permitir play desde 0
+        progress_var.set(0)
+        if is_playing:
+            pygame.mixer.music.play()
+            update_progress()
 
+        
 def play_and_pause():
-    global is_playing,song_length
-    if not is_playing:
-        load_song()
-        pygame.mixer.music.play()
-        song_length = 156 #Modificar a futuro no puede ser un valor constante
-        is_playing = True
-        update_progress()
-    else:
-        if pygame.mixer.music.get_busy():
-            pygame.mixer.music.pause()
+    global is_playing
+    if current_song:
+        if not is_playing:
+            pygame.mixer.music.play()
+            is_playing = True
+            update_progress()
         else:
-            pygame.mixer.music.unpause()
+            if pygame.mixer.music.get_busy():
+                pygame.mixer.music.pause()
+            else:
+                pygame.mixer.music.unpause()
+            is_playing = not is_playing
 
 def stop_song():
     global is_playing
-    pygame.mixer.music.pause()
+    pygame.mixer.music.stop()
     is_playing = False
+    progress_var.set(0)
+
+
 
 
 def next_song():
     if playlist:
         new_index = (current_song_index + 1) % len(playlist)
         load_song(new_index)
-        if is_playing:  # Si estaba reproduciendo, continúa con la siguiente
+        if is_playing:
             pygame.mixer.music.play()
 
 def prev_song():
@@ -117,14 +126,17 @@ def set_volume(val):
     pygame.mixer.music.set_volume(volume)
 
 def update_progress():
-    if is_playing:
-        current_pos = pygame.mixer.music.get_pos() / 1000  
+    global progress_updating
+    if is_playing and pygame.mixer.music.get_busy():
+        current_pos = pygame.mixer.music.get_pos() / 1000
         if song_length > 0:
-            progress = (current_pos / song_length) * 100
+            progress = min((current_pos / song_length) * 100, 100)
             progress_var.set(progress)
+            if progress >= 100:
+                next_song()
         root.after(100, update_progress)
-    else: 
-        progress_var.set(0)
+    else:
+        progress_updating = False
 
 
 # Widgets
